@@ -1,0 +1,11 @@
+---
+#
+# Test playbook to install openVPN server using the openVPN role
+#
+
+- name: Install OpenVPN server
+  hosts: openvpn
+  user: root
+  roles: 
+    - { role: openVPN }
+  

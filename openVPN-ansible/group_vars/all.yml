@@ -1,0 +1,24 @@
+---
+# The url for downloading the easy rsa package (Current version 2.3.3)
+easyrsa_url: https://github.com/OpenVPN/easy-rsa-old/archive/2.3.3.tar.gz
+
+# The directory of easy rsa after downloading it    
+easyrsa_dir: easy-rsa-old-2.3.3/easy-rsa/2.0/
+
+# The user account that manages the installation of the openvpn server
+openVPN_user: root
+
+# The public IP address of the server
+server_IP_addr: 
+
+# The virtual network that server creates for the clients to join
+server_network: 10.8.0.0
+
+# The subnet mask for the virtual network that is created by the server
+server_subnet_mask: 255.255.255.0
+
+# The common name of the certificate of the server
+server_cert_name: server
+
+# The name that is given to the openVPN server instance 
+server_name: server

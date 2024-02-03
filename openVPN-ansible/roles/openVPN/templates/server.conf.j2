@@ -1,0 +1,61 @@
+tls-server
+
+#port
+port 1194
+
+#protocol
+proto udp
+
+#subnet mode for topology
+topology subnet
+
+#virtual interface that is used for the openvpn sevrer
+dev tun
+
+#
+#Certificate Information
+#
+
+#ca certificate
+ca /etc/openvpn/keys/ca.crt
+
+#Server certificate
+cert /etc/openvpn/keys/server.crt
+
+#Server key (secret)
+key /etc/openvpn/keys/server.key
+
+#DH key
+dh /etc/openvpn/keys/dh2048.pem
+
+#Certificate Revocation List
+crl-verify crl.pem
+
+##############################################
+
+#Server Network
+server {{server_network}} {{server_subnet_mask}}
+
+#Push a route to ther server
+push "route {{server_network}} {{server_subnet_mask}}"
+
+# Client configuration location
+client-config-dir /etc/openvpn/client
+
+# Client ip address persist option
+ifconfig-pool-persist ipp.txt
+
+keepalive 20 60
+comp-lzo
+persist-key
+persist-tun 
+daemon
+
+#enable log
+log-append /var/log/openvpn/openvpn.log
+
+remote-cert-eku "TLS Web Client Authentication"
+tls-crypt /etc/openvpn/keys/vpn.tlsauth
+
+#log level
+verb 3

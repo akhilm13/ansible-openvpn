@@ -1,0 +1,29 @@
+client
+
+# The virtual interface used by the client
+dev tun
+
+# The protocol used by the client
+proto udp
+
+#
+#Certificate Informations
+#
+
+ca 
+
+cert 
+
+key
+
+#server address
+remote ip_here port_here udp
+
+remote-cert-eku "TLS Web Server Authentication"
+
+tls-crypt /etc/openvpn/certs/vpn.tlsauth
+
+persist-key
+persist-tun
+mute-replay-warnings
+comp-lzo

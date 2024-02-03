@@ -1,0 +1,130 @@
+---
+# 
+# Installation of openVPN and related files
+#
+# Installation of epel-release
+- name: Installing epel repository for installation of OpenVPN
+  become: yes
+  yum:
+    name: epel-release
+    state: present
+# Installation of OpenVPN
+- name: Installing OpenVPN
+  become: yes
+  yum:
+    name: openvpn
+    state: present
+# Create a directory in tmp for downloading easy-rsa to
+- name: Creating a directory in tmp for easy-rsa download
+  become: yes
+  file:
+    path: /tmp/easy-rsa
+    state: directory
+# Installation of easy-rsa
+- name: Installing easy-rsa for certificates
+  become: yes
+  unarchive:
+    src: "{{easyrsa_url}}"
+    dest: /tmp/easy-rsa/
+    remote_src: yes
+#Creating the directory for storing easyrsa files
+- name: Creating a directory in /etc/openvpn for storing easyrsa files
+  become: yes
+  file: 
+    path: /etc/openvpn/easyrsa
+    state: directory
+# Copying the EasyRSA files to the openVPN directory
+- name: Copying EasyRsa Files to OpenVPN Directory
+  become: yes
+  shell: cp -r /tmp/easy-rsa/{{easyrsa_dir}}* /etc/openvpn/easyrsa/
+# Adding a server configuration Adding a server configurationn 
+- name: Copying the template file as the server configuration
+  become: yes
+  template:
+    src: server.conf.j2
+    dest: /etc/openvpn/server.conf
+#Copying the ifconfig text file
+- name: Copying the template files for ipp.txt
+  become: yes
+  template: 
+    src: ipp.txt.j2
+    dest: /etc/openvpn/ipp.txt
+#Copying the sample client file to the directory for the script to access
+- name: Copying the sample client file for dev access client.tmp
+  become: yes
+  template:
+    src: client.tmp.j2
+    dest: /etc/openvpn/client.tmp
+    
+# Creating log file directory for the openvpn log file
+- name: Creating log directory for the openvpn log file
+  become: yes
+  file:
+    path: /var/log/openvpn
+    state: directory
+# Creating log file openvpn logs
+- name: Creating the openvpn log file
+  become: yes
+  file:
+    path: /var/log/openvpn/openvpn.log
+    state: touch
+# Creating the keys directory in openVPN Directory. Stores the server keys
+- name: Creating /etc/openvpn/keys
+  become: yes
+  file: 
+    path: /etc/openvpn/keys
+    state: directory
+# Generating in the TLS Key
+- name: Generating TLS auth key
+  become: yes
+  shell: sudo openvpn --genkey --secret /etc/openvpn/keys/vpn.tlsauth
+# Adding the certificate variable files 
+- name: Copying the certificate variables template file to the correct directory
+  become: yes
+  template:
+    src: vars.j2
+    dest: /etc/openvpn/easyrsa/vars
+# Generating CA Key and Certificate
+- name: Generating the certificates for the server
+  shell: |
+    cd /etc/openvpn/easyrsa
+    source ./vars
+    ./clean-all
+    (echo -en "\n\n\n\n\n\n\n\n";) | ./build-ca 
+# Generating the server certificate and key
+- name: Generatign server certificate and key
+  shell: |
+    cd /etc/openvpn/easyrsa
+    source ./vars
+    (echo -en "\n\n\n\n\n\n\n\n"; sleep 1; echo -en "\n"; sleep 1; echo -en "\n"; sleep 3; echo -en "yes"; echo -en "\n"; sleep 3; echo -en "yes"; echo -en "\n";) | ./build-key-server "{{server_cert_name}}"
+# Generating the Deffi-Hellaman Key
+- name: Generatign the DH Key. 
+  shell: |
+    cd /etc/openvpn/easyrsa
+    source ./vars
+    ./build-dh
+# Copying the generated keys and certs to the openpvn keys folder
+- name: Copying the keys and certificates to /etc/openvpn/keys
+  become: yes
+  shell: |
+    cd /etc/openvpn/easyrsa/keys
+    cp "{{server_cert_name}}".key  "{{server_cert_name}}".crt ca.crt dh2048.pem /etc/openvpn/keys       
+#Allowing IPv4 routing through the server
+- name: Changing the value to /proc/sys/net/ipv4/ip_forward to 1 to allow forwarding
+  become: yes
+  shell:
+    echo 1 > /proc/sys/net/ipv4/ip_forward
+#Enabling openvpn server with systemd 
+- name: Enabling the openvpn server 
+  become: yes
+  systemd:
+    name: openvpn@{{server_name}}
+    enabled: yes
+# Starting openvpn server
+- name: Starting OpenVPN server
+  become: yes
+  systemd: 
+    name: openvpn@{{server_name}}
+    state: started 
+
+
